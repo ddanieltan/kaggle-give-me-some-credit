@@ -131,5 +131,5 @@ print(train.age.value_counts().tail(20))
 # %%
 # Conclusion
 # 1. Fill nas with median values
-# 2. Target engineering - Use gbm or upsample minority class
+# 2. Target class imbalance - Use gbm or upsample minority class, stratified sampling
 # 3. Feature engineering - log transform skewed features, replace outliers for age with mean
