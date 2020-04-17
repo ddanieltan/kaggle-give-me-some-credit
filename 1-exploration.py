@@ -23,7 +23,6 @@ print(f'Proportion of null MonthlyIncome= {29731/150000}')
 print(f'Proportion of null NumberOfDependents= {3924/150000}')
 # 20% missing MonthlyIncome slightly concerning
 # 3% missing NumberOfDependents less so
-# leave missing for now, potentially fill in later
 
 
 #%% Checking if the rows with null data contain high predictive power
@@ -48,7 +47,9 @@ for i in target.index:
 # Class 0 aka No SeriousDlqin2 years 
 # makes up 93% of the dataset
 # severe imbalance
-# We'll have to stratify our sample to account for this imbalance
+# We should either:
+# 1. Use a gradient booosted tree model that has parameters to handle imbalanced classes
+# 2. Consider upsampling Class 1, perhaps with SMOTE
 
 # %% Feature Engineering
 
@@ -130,5 +131,5 @@ print(train.age.value_counts().tail(20))
 # %%
 # Conclusion
 # 1. Fill nas with median values
-# 2. Target engineering - stratified sampling when modeling
+# 2. Target engineering - Use gbm or upsample minority class
 # 3. Feature engineering - log transform skewed features, replace outliers for age with mean
