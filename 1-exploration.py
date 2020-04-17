@@ -37,6 +37,7 @@ print(train.groupby('NumberOfDependents_null')['SeriousDlqin2yrs'].mean())
 # Suggesting predictive power to identify class 1 is low
 # We can take a simple approach to fill in missing values (mean/median/mode)
 
+
 # %% Checking for target class imbalance
 ax = sns.countplot(x = train.SeriousDlqin2yrs)
 
@@ -81,4 +82,53 @@ def check_distribution_boxplot(feature):
 for feature_name in train.columns:
     check_distribution_boxplot(train[feature_name])
 
+# %% Log Transforming highly skewed features
+skewed_features=[
+    'RevolvingUtilizationOfUnsecuredLines',
+    'NumberOfTime30-59DaysPastDueNotWorse',
+    'DebtRatio',
+    'NumberOfTimes90DaysLate',
+    'NumberRealEstateLoansOrLines',
+    'NumberOfTime60-89DaysPastDueNotWorse'
+]
+
+for feature_name in skewed_features:
+    feature=np.log(train[feature_name]+1)
+    check_distribution_boxplot(feature)
+
+# %% Filling in missing values
+
+# MonthlyIncome had 20% missing values
+# and a highly skewed distribution
+# I'll choose to replace the missing values with the median of the distribution
+
+# As a check let's see how MonthlyIncome looks after filled in missing values + log transform
+train.MonthlyIncome=train.MonthlyIncome.fillna(train.MonthlyIncome.median())
+train['MonthlyIncome_log']=np.log(train.MonthlyIncome+1)
+check_distribution_boxplot(train.MonthlyIncome_log)
+
+# %% Repeat same engineering for NumberOfDependents
+
+train.NumberOfDependents=train.NumberOfDependents.fillna(train.NumberOfDependents.median())
+train['NumberOfDependents_log']=np.log(train.NumberOfDependents+1)
+check_distribution_boxplot(train.NumberOfDependents_log)
+
+
+#%% Age
+# Age distribution looks centred
+# But boxplot reveals presence of outliers
+check_distribution_boxplot(train.age)
+
+#%%
+# There is a single data point with age 0 that can be assumed to be a data entry error
+# And a small amount of data points age>99 that seem improbable
+print(train.age.value_counts().tail(20))
+
+#%% 
+# Given the centred distribution, I will replace these values with the mean of the distribution
+
 # %%
+# Conclusion
+# 1. Fill nas with median values
+# 2. Target engineering - stratified sampling when modeling
+# 3. Feature engineering - log transform skewed features, replace outliers for age with mean
