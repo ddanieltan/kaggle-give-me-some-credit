@@ -62,9 +62,23 @@ def plot_corr_heatmap(df):
     return chart
 
 plot_corr_heatmap(train)
+
 # As a baseline, most of features show weak correlation with our target
 
+# %% Plotting feature distributions
+def check_distribution_boxplot(feature):
+    fig,axes = plt.subplots(nrows=1,ncols=2,dpi=120,figsize = (8,4))
+    sns.set(font_scale=1)
+    
+    plot00=sns.distplot(feature,ax=axes[0],color='m')
+    plt.tight_layout()
+
+    plot01=sns.boxplot(train[feature,ax=axes[1],orient = 'v',color='c')
+    plt.tight_layout()
 
 
-# %% Check features again
+# %%
+for feature_name in train.columns:
+    check_distribution_boxplot(train[feature_name])
 
+# %%
