@@ -21,6 +21,7 @@ I do my work directly in python files, utilising the [VSCode feature]((https://c
 
 | AUC Score  | Leaderboard Position |
 |------------|----------------------|
+|0.86112| 511|
 | 0.84876 | 658|
 |0.84722 | 664|
 |0.84579 | 672|
