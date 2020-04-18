@@ -69,17 +69,92 @@ from sklearn.metrics import roc_curve, roc_auc_score
 
 def plot_roc_curve(y_true,y_pred):
     fpr, tpr, thresholds = roc_curve(y_true, y_pred, pos_label=1)
-    plt.figure(figsize=(12,10))
+    plt.figure(figsize=(10,8))
     plt.plot(fpr, tpr, linewidth=2)
     plt.plot([0,1],[0,1], "k--")
     plt.axis([0,1,0,1])
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive rate")
 
-plot_roc_curve(y_test,y_pred)
+def auc_plot_and_score(y_true,y_pred):
+    plot_roc_curve(y_true,y_pred)
+    print(roc_auc_score(y_test,y_pred)
+)
 
 #%%
-roc_auc_score(y_test,y_pred)
+auc_plot_and_score(y_test,y_pred)
+# 0.83087
+
+#%% Model 2: Random Forests
+# Scaling numeric features
+from sklearn.preprocessing import StandardScaler
+scaler=StandardScaler()
+X_train_scaled=scaler.fit_transform(X_train)
+X_test_scaled=scaler.transform(X_test)
+
+#%% RF Model
+from sklearn.ensemble import RandomForestClassifier
+rf=RandomForestClassifier(
+    random_state=RANDOM_STATE,
+    n_estimators=500,
+    max_depth=5
+)
+rf.fit(X_train_scaled,y_train)
+y_pred=rf.predict_proba(X_test)[:,1]
+
+#%%
+auc_plot_and_score(y_test,y_pred)
+# 0.81599
+
+#%% Inspect feature importance with RF model
+def plot_feature_importances(model):
+    plt.figure(figsize=(10,8))
+    n_features = X.shape[1]
+    plt.barh(range(n_features), model.feature_importances_, align='center')
+    plt.yticks(np.arange(n_features), X.columns)
+    plt.xlabel("Feature importance")
+    plt.ylabel("Feature")
+    plt.ylim(-1, n_features)
+
+plot_feature_importances(rf)
+#NumberOfTimes90DaysLate highest importance
+
+
+#%% Model 3: LightGBM
+# No need to scale features, as this step was previously done for RF model
+import lightgbm as lgb
+train_lgb=lgb.Dataset(
+    X_train_scaled,
+    label=y_train
+)
+test_lgb=lgb.Dataset(
+    X_test_scaled,
+    label=y_test
+)
+
+#%% Parameters of LightGBM model
+
+params = {
+    'objective':'binary',
+    'num_class':1,
+    'learning_rate':0.003,
+    'num_leaves':500,
+    'boosting':'gbdt',
+    'metric':'auc',
+    'min_data':50,
+    'max_depth':10,
+    'random_state':RANDOM_STATE
+}
+
+lgb_model=lgb.train(
+    params,
+    train_lgb,
+    100
+)
+y_pred=lgb_mode.predict_proba(X_test)[:,1]
+
+#%% LGB score
+auc_plot_and_score(y_test,y_pred)
 
 #%% Cross Validation
 from sklearn.model_selection import StratifiedKFold
