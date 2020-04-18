@@ -6,7 +6,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 
 # %% Ideas to improve Kaggle leaderboard position
-# We start from position 663
 # 1. Lgb Model parameter tuning
 # a. scale_pos_weight to better encode unbalanced classes
 # https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/discussion/53696
@@ -55,15 +54,10 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-
-
-
 #%% Scaling
 scaler=StandardScaler()
 X_train_scaled=scaler.fit_transform(X_train)
 X_test_scaled=scaler.transform(X_test)
-
-
 
 #%% Retrieve current model
 lgb_model=lgb.LGBMClassifier(
@@ -89,7 +83,7 @@ tuning_params = {
 #%%
 from sklearn.model_selection import StratifiedKFold
 skf=StratifiedKFold(
-    n_splits=3,
+    n_splits=7,
     random_state=RANDOM_STATE
 )
 from sklearn.model_selection import RandomizedSearchCV
@@ -106,28 +100,16 @@ gs=RandomizedSearchCV(
 # %% Fitting Randomsearch
 gs.fit(X_train_scaled,y_train)
 print('Best score reached: {} with params: {} '.format(gs.best_score_, gs.best_params_))
-#Best score reached: 0.8637597836736455 with params: {'scale_pos_weight': 10, 'num_leaves': 10} 
-
-# %%
-lgb_model_improved=lgb.LGBMClassifier(
-    n_estimators=200, 
-    silent=False, 
-    random_state=RANDOM_STATE, 
-    max_depth=4,
-    objective='binary',
-    metrics ='auc',
-    boosting='gbdt',
-    learning_rate=0.025,
-    scale_pos_weight=10,
-    num_leaves=10
-)
-lgb_model_improved.fit(X_train_scaled,y_train)
+# Best score reached: 0.8655126596834652 with params: {'scale_pos_weight': 10, 'num_leaves': 10, 
+# 'n_estimators': 1000, 'max_depth': 5, 'learning_rate': 0.01} 
 
 # %%
 def create_submission(model):
     kaggle_test=pd.read_csv('./data/cs-test.csv',index_col=0)
     submission=pd.read_csv('./data/sampleEntry.csv',index_col=0)
     X_kaggle=kaggle_test.drop('SeriousDlqin2yrs',axis=1)
+    X_kaggle['AgeDecade']=pd.cut(x=X_kaggle['age'], bins=[20,29, 39,49,59,69,79,89,99,109], labels=[20,30,40,50,60,70,80,90,100])
+
     X_kaggle=scaler.transform(X_kaggle)
     y_pred=model.predict_proba(X_kaggle)[:,1]
     submission.Probability=y_pred
@@ -140,6 +122,6 @@ def create_submission(model):
 
 
 # %%
-create_submission(lgb_model_improved)
+create_submission(gs)
 
 # %%
