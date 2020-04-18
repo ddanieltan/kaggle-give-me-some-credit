@@ -125,14 +125,6 @@ plot_feature_importances(rf)
 #%% Model 3: LightGBM
 # No need to scale features, as this step was previously done for RF model
 import lightgbm as lgb
-train_lgb=lgb.Dataset(
-    X_train_scaled,
-    label=y_train
-)
-test_lgb=lgb.Dataset(
-    X_test_scaled,
-    label=y_test
-)
 
 #%% Parameters of LightGBM model
 
