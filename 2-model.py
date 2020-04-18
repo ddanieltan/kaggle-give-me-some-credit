@@ -192,5 +192,27 @@ cross_validated_auc(logreg,skf)
 cross_validated_auc(rf,skf)
 cross_validated_auc(lgb_model,skf)
 
+#
+# Mean AUC: 0.8331686429732408, Std Dev: 0.0059887103906922975
+# Mean AUC: 0.8590119994368026, Std Dev: 0.0045709444241961595
+# Mean AUC: 0.8637209256175506, Std Dev: 0.0047222826253001315
+
+#%% Submission
+kaggle_test=pd.read_csv('./data/cs-test.csv',index_col=0)
+submission=pd.read_csv('./data/sampleEntry.csv',index_col=0)
 # %%
-# need to scale?
+X_kaggle=kaggle_test.drop('SeriousDlqin2yrs',axis=1)
+X_kaggle=scaler.transform(X_kaggle)
+=
+# %%
+y_pred=lgb_model.predict_proba(X_kaggle)[:,1]
+
+# %%
+submission.Probability=y_pred
+
+# %%
+import random
+prefix=str(random.randint(1000,9999))
+submission.to_csv(f'./output/{prefix}_submission.csv')
+
+# %%
