@@ -25,14 +25,13 @@ skewed_features=[
 for feature_name in skewed_features:
     X[feature_name]=np.log(train[feature_name]+1)
 
-#%% For features with issing values
+#%% For features with missing values
 # Replace with median, then log transform
 X.MonthlyIncome=X.MonthlyIncome.fillna(X.MonthlyIncome.median())
 X.MonthlyIncome=np.log(X.MonthlyIncome+1)
 
 X.NumberOfDependents=X.NumberOfDependents.fillna(X.NumberOfDependents.median())
 X.NumberOfDependents=np.log(X.NumberOfDependents+1)
-
 
 #%% Train Test Split
 from sklearn.model_selection import train_test_split
@@ -42,6 +41,12 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=RANDOM_STATE,
     stratify=y
 )
+
+# Scaling numeric features
+from sklearn.preprocessing import StandardScaler
+scaler=StandardScaler()
+X_train_scaled=scaler.fit_transform(X_train)
+X_test_scaled=scaler.transform(X_test)
 
 #%% Verifying stratified sample
 def check_proportion_of_classes(df):
@@ -60,12 +65,13 @@ logreg=LogisticRegression(
     penalty="l2",
     C=1
 )
-logreg.fit(X_train,y_train)
-y_pred=logreg.predict_proba(X_test)[:,1]
+logreg.fit(X_train_scaled,y_train)
+y_pred=logreg.predict_proba(X_test_scaled)[:,1]
 
 
 #%% AUC scoring
-from sklearn.metrics import roc_curve, roc_auc_score 
+from sklearn.metrics import roc_curve, roc_auc_score, accuracy_score,f1_score
+import matplotlib.pyplot as plt
 
 def plot_roc_curve(y_true,y_pred):
     fpr, tpr, thresholds = roc_curve(y_true, y_pred, pos_label=1)
@@ -86,11 +92,7 @@ auc_plot_and_score(y_test,y_pred)
 # 0.83087
 
 #%% Model 2: Random Forests
-# Scaling numeric features
-from sklearn.preprocessing import StandardScaler
-scaler=StandardScaler()
-X_train_scaled=scaler.fit_transform(X_train)
-X_test_scaled=scaler.transform(X_test)
+
 
 #%% RF Model
 from sklearn.ensemble import RandomForestClassifier
@@ -134,35 +136,61 @@ test_lgb=lgb.Dataset(
 
 #%% Parameters of LightGBM model
 
-params = {
-    'objective':'binary',
-    'num_class':1,
-    'learning_rate':0.003,
-    'num_leaves':500,
-    'boosting':'gbdt',
-    'metric':'auc',
-    'min_data':50,
-    'max_depth':10,
-    'random_state':RANDOM_STATE
-}
+# params = {
+#     'objective':'binary',
+#     'num_class':1,
+#     'learning_rate':0.003,
+#     'num_leaves':500,
+#     'boosting':'gbdt',
+#     'metric':'auc',
+#     'min_data':50,
+#     'max_depth':10,
+#     'random_state':RANDOM_STATE
+# }
 
-lgb_model=lgb.train(
-    params,
-    train_lgb,
-    100
+lgb_model=lgb.LGBMClassifier(
+    n_estimators=200, 
+    silent=False, 
+    random_state=RANDOM_STATE, 
+    max_depth=4,
+    objective='binary',
+    metrics ='auc',
+    boosting='gbdt',
+    learning_rate=0.025
+
 )
-y_pred=lgb_mode.predict_proba(X_test)[:,1]
+lgb_model.fit(X_train_scaled,y_train)
+y_pred=lgb_model.predict_proba(X_test)[:,1]
 
 #%% LGB score
-auc_plot_and_score(y_test,y_pred)
+auc_plot_and_score(y_test,y_pred) #0.83199
 
-#%% Cross Validation
+#%% Use Cross Validation to score the 3 models, controlling for overfitting
 from sklearn.model_selection import StratifiedKFold
 skf=StratifiedKFold(
     n_splits=10,
     random_state=RANDOM_STATE
 )
-for train_index, test_index in skf.split(X,y):
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
 
+#%%
+from sklearn.model_selection import cross_val_score
+
+def cross_validated_auc(model,skf):
+    scores=cross_val_score(
+        model,
+        X,
+        y,
+        scoring='roc_auc',
+        cv=skf
+    )
+
+    print(f'Mean AUC: {np.mean(scores):.3f}, Std Dev: {np.std(scores):.3f}')
+
+
+# %%
+cross_validated_auc(logreg,skf)
+cross_validated_auc(rf,skf)
+cross_validated_auc(lgb_model,skf)
+
+# %%
+# need to scale?
