@@ -1,6 +1,7 @@
 #%%
 import pandas as pd
 import numpy as np
+import utils
 
 #%% Globals
 RANDOM_STATE = 2020
@@ -19,19 +20,13 @@ skewed_features=[
     'DebtRatio',
     'NumberOfTimes90DaysLate',
     'NumberRealEstateLoansOrLines',
-    'NumberOfTime60-89DaysPastDueNotWorse'
+    'NumberOfTime60-89DaysPastDueNotWorse',
+    'MonthlyIncome',
+    'NumberOfDependents'
 ]
 
-for feature_name in skewed_features:
-    X[feature_name]=np.log(train[feature_name]+1)
+X = utils.log_transform_df(X,skewed_features)
 
-#%% For features with missing values
-# Replace with median, then log transform
-X.MonthlyIncome=X.MonthlyIncome.fillna(X.MonthlyIncome.median())
-X.MonthlyIncome=np.log(X.MonthlyIncome+1)
-
-X.NumberOfDependents=X.NumberOfDependents.fillna(X.NumberOfDependents.median())
-X.NumberOfDependents=np.log(X.NumberOfDependents+1)
 
 #%% Train Test Split
 from sklearn.model_selection import train_test_split

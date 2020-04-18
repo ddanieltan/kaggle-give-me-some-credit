@@ -11,6 +11,10 @@ from sklearn.model_selection import train_test_split
 # https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/discussion/53696
 # b. gridsearch/randomsearch
 
+# SMOTE
+
+# check if null % in test set is the same as training set 
+
 # 2. More Feature engineering -> bring in domain knowledge
 
 #%% Globals
@@ -27,8 +31,12 @@ X['AgeDecade']=pd.cut(x=X['age'], bins=[20,29, 39,49,59,69,79,89,99,109], labels
 
 #%% Bin debt ratio
 X['DebtRatio']=np.where(X['DebtRatio'] > 1.0, 1.0, X['DebtRatio'])
-X['DebtRatio']=pd.cut(x=X['DebtRatio'], bins=[-0.1,0.33,0.43,1.0], labels=[0,1,2])
+X['DebtRatio']=pd.cut(x=X['DebtRatio'], bins=[-0.1,0.33,0.43,1.0], labels=[0,1,2]) #better for logreg, but use original for lgb
 
+# Just throw feature engineering
+# mean, median, stddev distance
+# monthly income/ no. of dependents
+# Don't remove nas, don't scale (!!)
 
 #%%
 skewed_features=[
@@ -61,14 +69,12 @@ X_test_scaled=scaler.transform(X_test)
 
 #%% Retrieve current model
 lgb_model=lgb.LGBMClassifier(
-    n_estimators=200, 
     silent=False, 
     random_state=RANDOM_STATE, 
-    max_depth=4,
     objective='binary',
     metrics ='auc',
     boosting='gbdt',
-    learning_rate=0.025
+    scale_pos_weight=14
 )
 lgb_model.fit(X_train_scaled,y_train)
 
@@ -78,7 +84,7 @@ tuning_params = {
     'scale_pos_weight':[1,10,14,16], # T/P-1 = 13.96
     'n_estimators':[100,250,500,750,1000],
     'learning_rate':[0.025,0.01,0.05,0.1],
-    'max_depth':[2,4,5,10,20]
+    'max_depth':[3,5,7]
 }
 #%%
 from sklearn.model_selection import StratifiedKFold
@@ -97,11 +103,17 @@ gs=RandomizedSearchCV(
     refit=True,
     verbose=True)
 
+
+
 # %% Fitting Randomsearch
 gs.fit(X_train_scaled,y_train)
 print('Best score reached: {} with params: {} '.format(gs.best_score_, gs.best_params_))
 # Best score reached: 0.8655126596834652 with params: {'scale_pos_weight': 10, 'num_leaves': 10, 
 # 'n_estimators': 1000, 'max_depth': 5, 'learning_rate': 0.01} 
+
+# inspect important features
+# check if any are zero
+# rerun new light gbm model if the case
 
 # %%
 def create_submission(model):
@@ -125,3 +137,8 @@ def create_submission(model):
 create_submission(gs)
 
 # %%
+#  What is AUC? Why do you think AUC was used as the evaluation metric for such a problem? 
+#  What are other metrics that you think would also be suitable for this competition?
+# It's not so good.
+# For imbalanced dataset, denominator (TN + FP) for FPR, denominator will always be large
+# Alternate suggestion precision/recall curve
