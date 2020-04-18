@@ -127,19 +127,6 @@ plot_feature_importances(rf)
 import lightgbm as lgb
 
 #%% Parameters of LightGBM model
-
-# params = {
-#     'objective':'binary',
-#     'num_class':1,
-#     'learning_rate':0.003,
-#     'num_leaves':500,
-#     'boosting':'gbdt',
-#     'metric':'auc',
-#     'min_data':50,
-#     'max_depth':10,
-#     'random_state':RANDOM_STATE
-# }
-
 lgb_model=lgb.LGBMClassifier(
     n_estimators=200, 
     silent=False, 
