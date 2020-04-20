@@ -36,7 +36,7 @@ def main():
     print(f'Post feature engineering shape:{X.shape}')
 
 
-    # %%
+    # %% Train Test Split
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
@@ -44,7 +44,7 @@ def main():
         stratify=y
     )
 
-    # %% 
+    # %% LightGBM Classifier
     lgb_model=lgb.LGBMClassifier(
         silent=False, 
         random_state=RANDOM_STATE, 
@@ -54,13 +54,13 @@ def main():
         scale_pos_weight=13.960106382978724 #T/P-1
     )
 
-    # %%
+    # %% Stratified Kfold parameters
     skf=StratifiedKFold(
         n_splits=5,
         random_state=RANDOM_STATE
     )
 
-    # %%
+    # %% Tuning Parameters for RandomSearch
     tuning_params = {
         'num_leaves':[5,10,15,31,40,50],
         'scale_pos_weight':[1,10,14,16], # T/P-1 = 13.96
@@ -95,7 +95,7 @@ def main():
     best_lgb=lgb.LGBMClassifier().set_params(**gs.best_params_)
     best_lgb.fit(X_train,y_train)
 
-    # %% Model Performance, AUC and PRC curves
+    # %% Calculating model performance, plotting AUC and PRC curves
     utils.calculate_model_performance(
         best_lgb,
         X_train,
@@ -105,8 +105,8 @@ def main():
         RANDOM_PREFIX
     )
 
-    # %% Create Submission
+    # %% Create Submission for Kaggle
     utils.create_submission(best_lgb,final_features,RANDOM_PREFIX)
-    
+
 if __name__ == "__main__":
     main()
