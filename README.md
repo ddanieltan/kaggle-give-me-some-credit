@@ -11,10 +11,13 @@ conda create --name credit --file requirements.txt
 python main.py
 ```
 
-## Files
-- [/data] : Input data provided by Kaggle
-- [/dev] : Development files
-- [/output] : Final submission (csv), feature list, AUC and PRC plots are saved here
+## File structure
+- /data : Input data provided by Kaggle
+- /dev : Development files used to explore problem and evaluate models
+- /output : Final submission (csv), feature list, AUC and PRC plots are saved here
+- utils.py : Collection of utility functions
+- requirements.txt : Project dependencies
+- main.py : Main script
 
 ## Progress of Kaggle AUC score and leaderboard placement
 
