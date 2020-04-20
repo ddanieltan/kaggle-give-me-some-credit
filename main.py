@@ -70,6 +70,7 @@ def main():
         'min_child_weight':range(3,6,1),
         'subsample':[i/10.0 for i in range(6,10)],
         'colsample_bytree':[i/10.0 for i in range(6,10)],
+        'reg_alpha':[1e-5, 1e-2, 0.1, 1, 100]
     }
 
     gs=RandomizedSearchCV(
@@ -82,9 +83,6 @@ def main():
         verbose=True)
 
     gs.fit(X_train,y_train)
-
-    #%%
-    # Best score reached: 0.8651849275748571 with params: {'scale_pos_weight': 14, 'num_leaves': 10, 'n_estimators': 1000, 'max_depth': 5, 'learning_rate': 0.01} 
 
     # %% Extraction and selection of final features
     impt_features=utils.get_feature_importance(gs,X_train)
@@ -108,7 +106,7 @@ def main():
     )
 
     # %% Create Submission
-    utils.create_submission(best_lgb,RANDOM_PREFIX)
-
+    utils.create_submission(best_lgb,final_features,RANDOM_PREFIX)
+    
 if __name__ == "__main__":
     main()
