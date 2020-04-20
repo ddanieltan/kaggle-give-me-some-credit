@@ -188,6 +188,10 @@ def add_features_distance_from_std(df_):
 
 # Evaluation functions
 def plot_corr_heatmap(df):
+    '''
+    Input: dataframe
+    Output: Heatmap chart
+    '''
     corr=df.corr()
     mask = np.triu(np.ones_like(corr, dtype=np.bool))   
     plt.subplots(figsize=(20,15))
@@ -209,6 +213,10 @@ def check_proportion_of_classes(ser):
 
 
 def get_feature_importance(model,X_train):
+    '''
+    Input: Classifier model, X_train dataframe
+    Output: dataframe of feature importance
+    '''
     feat_df=pd.DataFrame(
         model.best_estimator_.feature_importances_,
         index=X_train.columns,
@@ -231,11 +239,8 @@ def get_feature_importance(model,X_train):
 def evaluation_metrics(y, y_pred):
     """
     Compute score statistics
-    :param y: series, data label
-    :param y_pred: series / ndarray, classifier score
-    :return
-        performance: dict, performance statistics
-        misc: dict, raw data for performance
+    Input - y_true series, y_pred series
+    Output - Dictionary of performance statistics
     """
 
     y_pred_cls = (y_pred > 0.5).astype(int)
@@ -263,11 +268,9 @@ def evaluation_metrics(y, y_pred):
 def calculate_model_performance(model, X_trainval, X_test, y_trainval, y_test, prefix):
     """
     Calculate model performance
-    :param model: model object implementing `predict` and `predict_proba`
-    :param X_trainval: DataFrame, trainval dataset
-    :param X_test: DataFrame, test dataset
-    :param y_trainval: Series, trainval label
-    :param y_test: Series, test label
+    Input - final model, X_train/X_test/Y_train/Y_test dataframe, prefix int
+    Output - None
+    
     """
 
     y_trainval_pred = model.predict_proba(X_trainval)[:, 1]
@@ -313,22 +316,26 @@ def calculate_model_performance(model, X_trainval, X_test, y_trainval, y_test, p
 # Submission function
 
 def create_submission(model,final_features,prefix):
+    '''
+    Input - final model, final_features array, prefix int
+    Output - None
+    '''
     kaggle_test=pd.read_csv('./data/cs-test.csv',index_col=0)
     submission=pd.read_csv('./data/sampleEntry.csv',index_col=0)
     X_kaggle=kaggle_test.drop('SeriousDlqin2yrs',axis=1)
     X_kaggle=(X_kaggle
-        .pipe(utils.replace_w_sensible_values)
-        .pipe(utils.replace_na)
-        .pipe(utils.log_transform_df)
-        .pipe(utils.add_AgeDecade)
-        .pipe(utils.add_boolean_DebtRatio_33)
-        .pipe(utils.add_boolean_DebtRatio_43)
-        .pipe(utils.add_features_per_dependent)
-        .pipe(utils.add_features_per_creditline)
-        .pipe(utils.add_features_per_estate)
-        .pipe(utils.add_features_distance_from_mean)
-        .pipe(utils.add_features_distance_from_median)
-        .pipe(utils.add_features_distance_from_std)
+        .pipe(replace_w_sensible_values)
+        .pipe(replace_na)
+        .pipe(log_transform_df)
+        .pipe(add_AgeDecade)
+        .pipe(add_boolean_DebtRatio_33)
+        .pipe(add_boolean_DebtRatio_43)
+        .pipe(add_features_per_dependent)
+        .pipe(add_features_per_creditline)
+        .pipe(add_features_per_estate)
+        .pipe(add_features_distance_from_mean)
+        .pipe(add_features_distance_from_median)
+        .pipe(add_features_distance_from_std)
     )
     X_kaggle=X_kaggle.loc[:, final_features]
     y_pred=model.predict_proba(X_kaggle)[:,1]
