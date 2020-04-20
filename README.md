@@ -3,7 +3,7 @@
 ## Overview
 This is my attempt of the Kaggle classification problem - [Give Me Some Credit](https://www.kaggle.com/c/GiveMeSomeCredit).
 
-My best AUC score achieved was **0.84876**, which would place me ~**658** on the private leaderboard.
+My best AUC score achieved was **0.86132**, which would place me **511th** on the private leaderboard.
 
 ## Usage
 ```
