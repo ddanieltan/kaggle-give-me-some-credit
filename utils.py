@@ -312,22 +312,25 @@ def calculate_model_performance(model, X_trainval, X_test, y_trainval, y_test, p
 
 # Submission function
 
-def create_submission(model,prefix):
+def create_submission(model,final_features,prefix):
     kaggle_test=pd.read_csv('./data/cs-test.csv',index_col=0)
     submission=pd.read_csv('./data/sampleEntry.csv',index_col=0)
     X_kaggle=kaggle_test.drop('SeriousDlqin2yrs',axis=1)
     X_kaggle=(X_kaggle
-        .pipe(replace_w_sensible_values)
-        .pipe(replace_na)
-        .pipe(log_transform_df)
-        .pipe(add_AgeDecade)
-        # .pipe(utils.add_DebtRatioBin)
-        .pipe(add_features_per_dependent)
-        .pipe(add_features_distance_from_mean)
-        .pipe(add_features_distance_from_median)
-        .pipe(add_features_distance_from_std)
+        .pipe(utils.replace_w_sensible_values)
+        .pipe(utils.replace_na)
+        .pipe(utils.log_transform_df)
+        .pipe(utils.add_AgeDecade)
+        .pipe(utils.add_boolean_DebtRatio_33)
+        .pipe(utils.add_boolean_DebtRatio_43)
+        .pipe(utils.add_features_per_dependent)
+        .pipe(utils.add_features_per_creditline)
+        .pipe(utils.add_features_per_estate)
+        .pipe(utils.add_features_distance_from_mean)
+        .pipe(utils.add_features_distance_from_median)
+        .pipe(utils.add_features_distance_from_std)
     )
-
+    X_kaggle=X_kaggle.loc[:, final_features]
     y_pred=model.predict_proba(X_kaggle)[:,1]
     submission.Probability=y_pred
 
