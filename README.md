@@ -7,7 +7,7 @@ My best AUC score achieved was **0.84876**, which would place me ~**658** on the
 
 ## Usage
 ```
-pip install -r requirements.txt
+conda create --name credit --file requirements.txt
 python main.py
 ```
 
@@ -20,7 +20,8 @@ python main.py
 
 | AUC Score  | Leaderboard Position |
 |------------|----------------------|
+|0.86132| 511 |
 |0.86112| 511|
-| 0.84876 | 658|
+|0.84876 | 658|
 |0.84722 | 664|
 |0.84579 | 672|
